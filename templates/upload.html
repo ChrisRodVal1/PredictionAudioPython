@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Classification</title>
+</head>
+<body>
+    <h2>Upload or Record an Audio File</h2>
+    <form id="uploadForm" method="post" enctype="multipart/form-data" action="/predict" onsubmit="return validateForm()">
+        <input id="fileInput" type="file" name="file" accept=".wav" onchange="updateAudioPreview(event)">
+        <button type="submit">Predict</button>
+    </form>
+    <p id="errorMessage" style="color: red; display: none;">Please select a file or record before submitting.</p>
+    
+    <div>
+        <audio id="audioPreview" controls></audio>
+    </div>
+
+    <div>
+        <button id="recordButton">Record</button>
+        <button id="stopButton" disabled>Stop</button>
+    </div>
+
+    <script>
+        const recordButton = document.getElementById('recordButton');
+        const stopButton = document.getElementById('stopButton');
+        const audioPreview = document.getElementById('audioPreview');
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const errorMessage = document.getElementById('errorMessage');
+
+        let mediaRecorder;
+        let chunks = [];
+
+        recordButton.addEventListener('click', startRecording);
+        stopButton.addEventListener('click', stopRecording);
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                    mediaRecorder.onstop = e => {
+                        const blob = new Blob(chunks, { 'type' : 'audio/wav; codecs=MS_PCM' });
+                        chunks = [];
+                        const audioURL = URL.createObjectURL(blob);
+                        audioPreview.src = audioURL;
+                        fileInput.files = [new File([blob], 'recorded_audio.wav')];
+                        uploadForm.style.display = 'block';
+                        recordButton.disabled = false;
+                        stopButton.disabled = true;
+                    };
+
+                    recordButton.disabled = true;
+                    stopButton.disabled = false;
+                    audioPreview.controls = false;
+                    mediaRecorder.start();
+                })
+                .catch(err => console.error('Error: ', err));
+        }
+
+        function stopRecording() {
+            mediaRecorder.stop();
+            recordButton.disabled = false;
+            stopButton.disabled = true;
+            audioPreview.controls = true;
+        }
+
+        function validateForm() {
+            if (fileInput.files.length === 0) {
+                errorMessage.style.display = "block";
+                return false; // Prevent form submission
+            } else {
+                errorMessage.style.display = "none";
+                return true; // Allow form submission
+            }
+        }
+
+        function updateAudioPreview(event) {
+            const file = event.target.files[0];
+            const audioURL = URL.createObjectURL(file);
+            audioPreview.src = audioURL;
+        }
+    </script>
+</body>
+</html>

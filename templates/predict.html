@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Classification Result</title>
+    <style>
+        .image-container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .image-container img {
+            width: 45%; /* Adjust width as needed */
+        }
+    </style>
+</head>
+<body>
+    <h2>Audio Classification Result</h2>
+    <form action="/" method="get">
+        <button type="submit">Upload Another Audio</button>
+    </form>
+    <p>Uploaded File: {{ filename }}</p>
+    <p>Predicted Class: {{ predicted_class }}</p>
+    <div class="image-container">
+        <img src="{{ url_for('static', filename='uploads/audio_sample_plot.png') }}" alt="Audio Sample Plot">
+        <img src="{{ url_for('static', filename='uploads/mfcc_plot.png') }}" alt="MFCC Plot">
+    </div>
+</body>
+</html>
